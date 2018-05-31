@@ -1,13 +1,13 @@
 <?php
-
+#se crea una clase la cual tendra diferentes metodos para accionar ciertas cosas
 Class MvcController{
-
+    #se carga la el template, la cual es nuestra vista
 	public function pagina(){	
 		
 		include "views/template.php";
 	
 	}
-
+#con ayuda de enlaces.php sbremos que a cual pagina ir
 	public function enlacesPaginasController(){
 
 		if(isset( $_GET['action'])){
