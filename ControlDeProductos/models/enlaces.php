@@ -4,7 +4,8 @@
 		
 		public function enlacesPaginasModel($enlaces){
 
-			if($enlaces == "login" || $enlaces == "menu"){
+			if($enlaces == "login" || $enlaces == "dashboard" || $enlaces == "categorias" || $enlaces == "usuarios" || 
+				$enlaces == "inventario"|| $enlaces == "tiendas"){
                 
 				$module =  "views/modules/".$enlaces.".php";
                 

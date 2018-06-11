@@ -3,7 +3,7 @@
 	class Conexion{
 		public function conectar(){
 			#se utiliza el meetodo pdo los cuales se le envian los parametros de host, nombre base de datos, el usuarios de la BD y la contraseña de la BD.
-			$pdo = new PDO("mysql:host=localhost;dbname=tutorias","root","");
+			$pdo = new PDO("mysql:host=localhost;dbname=mydb","root","");
 			return $pdo;
 		}
 	}

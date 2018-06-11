@@ -3,455 +3,172 @@
 Class MvcController{
 
 	public function pagina(){	
-		
 		include "views/template.php";
-	
 	}
 
 	public function enlacesPaginasController(){
 
 		if(isset( $_GET['action'])){
-			
 			$enlaces = $_GET['action'];
-		
 		}
-
 		else{
-
 			$enlaces = "index";
 		}
-
 		$respuesta = Paginas::enlacesPaginasModel($enlaces);
 
 		include $respuesta;
-
 	}
-
+#---------------------------------------------------------------------------------------------------------
+#ingreso del login
 	public function ingresoUsuarioController(){
-        if(isset($_POST["email"])){
-			$datosController = array( "correo"=>$_POST["email"], 
-								      "password"=>$_POST["password"]);
-			$respuesta = Datos::ingresoUsuarioModel($datosController, "maestros");
-
-			if($respuesta["email"] == $_POST["email"] && $respuesta["password"] == $_POST["password"]){
-				session_start();
+		#obtencion de los datos por el metodo post del form del login
+		if(isset($_POST["login"])){
+			#los valores obtenidos del formulario se guardan en un array
+			$datosController = array ("usuario" => $_POST["usuario"],
+										"password" => $_POST["password"]);
+			#se manda a llamar a CRUD para saber si los datos ingresados son correctos junto con la tabla en la cual buscara
+			$respuesta = Datos::ingresoUsuarioModel($datosController, "usuarios");
+			#si hay una respuesta entra en el if
+			if($respuesta){
+				session_start();#se inicia sesion
+				#variables de sesion que guardaran datos ya que se pueden enviar entre paginas 
 				$_SESSION["validar"] = true;
-				header("location:index.php?action=menu");
+				$_SESSION["usuario"] = $respuesta["nombre"];
+				$_SESSION["id"] = $respuesta["id_usuario"];
+
+				header("location:index.php?action=dashboard");
 			}else{
-				header("location:index.php?action=fallo");
-			}
-		}	
-	}
-/*
-	public function vistaMaestrosController(){
-
-		$respuesta = Datos::vistaMaestrosModel("maestros");
-
-		foreach($respuesta as $row => $item){
-		echo'<tr>
-				<td>'.$item["id_maestro"].'</td>
-				<td>'.$item["nombre"].'</td>
-				<td>'.$item["name"].'</td>
-				<td>'.$item["email"].'</td>
-				<td><a href="index.php?action=edit_maestro&id='.$item["id_maestro"].'"><button class="button" >Modificar</button></a></td>
-				<td><a href="index.php?action=delete_maestro&id='.$item["id_maestro"].'"><button class="button">Eliminar</button></a></td>
-			</tr>';
-
-		}
-
-	}
-
-	public function CarrerasController(){
-
-		$respuesta = Datos::selectCarrerasModel("carreras");
-
-		foreach($respuesta as $row => $item){
-
-		echo '<option value='.$item["id_carrera"].'>'.$item["nombre"].'</option>';
-
-		}
-
-	}
-
-	public function agregarMaestrosController(){
-
-		if(isset($_POST["agregar"])){
-			
-				$datosController = array( "id_maestro"=>$_POST["id_maestro"],
-										  "carrera"=>$_POST["carrera"],
-										  "nombre_ma"=>$_POST["nombre"],
-										  "email"=>$_POST["email"],
-										  "password"=>$_POST["password"]);
-			
-			$respuesta = Datos::agregarMaestroModel($datosController, "maestros");
-
-			if($respuesta == "success"){
-
-				header("location:index.php?action=maestros");
-
-			}else{
-
+				#en caso de fallar arrojara una alerta
 				header("location:index.php?action=fallo");
 			}
 
 		}
-
 	}
 
-	public function editMaestroController(){
+#---------------------------------------------------------------------------------------------------------
 
-		$carrera_ma = Datos::selectCarrerasModel("carreras");
-
-		$datosController = $_GET["id"];
-
-		$respuesta = Datos::editMaestroModel($datosController, "maestros");
-
-		echo'
-		<form class="form-horizontal" role="form">
-		<div class="form-group">
-		<label class="col-md-2 control-label">Matricula</label>
-		<div class="col-md-10">
-		<input type="text" class="form-control" name="id_maestro" value="'.$respuesta["id_maestro"].'">
-		</div>
-
-		<div class="form-group">
-		<label class="col-md-2 control-label">Nombre</label>
-		<div class="col-md-10">
-		<input type="text" class="form-control" name="name" value="'.$respuesta["name"].'">
-		</div>
-		</div>
-		<div class="form-group">
-		<label class="col-md-2 control-label" for="example-email">Email</label>
-		<div class="col-md-10">
-		<input type="email"class="form-control"  name="email" value="'.$respuesta["email"].'">
-		</div>
-		</div>
-		<div class="form-group">
-		<label class="col-md-2 control-label">Password</label>
-		<div class="col-md-10">
-		<input type="password" class="form-control" name="password" value="'.$respuesta["password"].'">
-		</div>
-		</div>
-		<div class="form-group">
-		<label class="col-md-2 control-label">Carrera</label>
-		<div class="col-md-10">
-		<select name="carrera">';
-		foreach($carrera_ma as $row => $item){
-
-			if ($item["id_carrera"] == $respuesta["id_carrera"]) {
-				echo '<option value='.$item["id_carrera"].' selected>'.$item["nombre"].'</option>';
-			}else{
-				echo '<option value='.$item["id_carrera"].'>'.$item["nombre"].'</option>';
+#muestra los datos de las categorias
+	public function vistaCategoriaController(){
+		#se envia la tabla en la cual buscara 
+		$respuesta = Datos::tablaModel("categorias");
+		#si hay respuesta se imprimiran en la tabla
+		if($respuesta){
+			foreach ($respuesta as $row => $item) {
+				echo '
+				<tr>
+					<td>'.$item["nombre_categoria"].'</td>
+					<td>'.$item["descripcion_categoria"].'</td>
+					<td>'.$item["fecha_agregada"].'</td>
+					<td  style="text-align: center;"><a href="index.php?action=edit_categoria&id='.$item["id_categoria"].'" class="btn btn-info"><i class="fa fa-edit"></i> Editar</a></td>
+					<td  style="text-align: center;"><a href="index.php?action=delete_categoria&idBorrar='.$item["id_categoria"].'" class="btn btn-danger"><i class="fa fa-times"></i> Eliminar</a></td>
+				</tr>';
 			}
 		}
-		echo'</select>
-		</div>
-		</div>
-		<div class="form-group">
-		<div class="col-md-10">
-		<button class="btn btn-lg btn-primary btn-block" value="Actualizar" name="Actualizar" type="submit">Agregar</button>
-		</div>
-		</div>
-		</form>
-		</div>';
 	}
 
-	public function updateMaestroController(){
+#---------------------------------------------------------------------------------------------------------
+	#muestra los datos de todos los usuarios
+	public function vistaUsuarioController(){
+		#se envia la tabla en la cual buscara 
+		$respuesta = Datos::tablaModel("usuarios");
+		#si hay respuesta se imprimiran en la tabla
+		if($respuesta){
+			foreach ($respuesta as $row => $item) {
+				#para que nosalga el usuario que esta en sesion se agrega una condicion
+				if ($_SESSION["id"]!=$item["id_usuario"]) {
+					echo'<tr>
+					<td>'.$item["nombre"].'</td>
+					<td>'.$item["usuario"].'</td>
+					<td>'.$item["fecha_registro"].'</td>
+					<td style="text-align: center;"><a href="index.php?action=edit_usuario&id='.$item["id_usuario"].'" class="btn btn-info"><i class="fa fa-edit"></i> Editar</a></td>
+					<td style="text-align: center;"><a href="index.php?action=delete_usuario&idBorrar='.$item["id_usuario"].'" class="btn btn-danger"><i class="fa fa-times"></i> Eliminar</a></td>
+					</tr>';
+				}
+				
+			}
+		}
+	}
+#---------------------------------------------------------------------------------------------------------
+	//Funcion que muestra todos los productos registrados
+	public function vistaInventarioController(){
+		//Se manda a llamar el modelo que consulta todos los productos registrados y existentes logicamente
+		$respuesta = Datos::tablaModel("productos");
+		//Si la consulta en el modelo se ejecuta exitosamente se recorre el array devuelto para imprimirlos
+		if($respuesta){
+			//Ciclo que recorre el array devuelto
+			foreach ($respuesta as $row => $item) {
+				//Se llama al modelo que busca la categoria registrada para obtener su nombre
+				$nom = Datos::nombreCategoriaModel($item["id_categoria"]);
+				//Se imprimen las filas de las tablas
+				echo'<tr>
+				<td>'.$item["codigo_producto"].'</td>
+				<td>'.$item["nombre_producto"].'</td>
+				<td>$'.$item["precio"].'</td>
+				<td>'.$item["stock"].'</td>
+				<td>'.$nom["nombre_categoria"].'</td>
+				<td>'.$item["fecha_registro"].'</td>
+                <td style="text-align: center;"><a href="index.php?action=stock&id='.$item["id_producto"].'" class="btn btn-success"><i class="fa fa-refresh"></i> Actualizar</a></td>
 
-
-		if(isset($_POST["Actualizar"])){
-
-			$datosController = array( "id_maestro"=>$_POST["id_maestro"],
-							          "id_carrera"=>$_POST["carrera"],
-							      	  "name"=>$_POST["name"],
-							      	  "email"=>$_POST["email"],
-							      	  "password"=>$_POST["password"]);
+				<td style="text-align: center;"><a href="index.php?action=edit_producto&id='.$item["id_producto"].'" class="btn btn-primary"><i class="fa fa-edit"></i> Editar</a></td>
+                
+				<td style="text-align: center;"><a href="index.php?action=delete_producto&idBorrar='.$item["id_producto"].'" class="btn btn-danger"><i class="fa fa-times"></i> Eliminar</a></td>
+				
+				</tr>';
+			}
+		}
 			
-			$respuesta = Datos::updateMaestroModel($datosController, "maestros");
-
-			if($respuesta == "success"){
-
-				header("location:index.php?action=maestros");
-
-			}
-
-			else{
-
-				echo "error";
-
-			}
-
-		}
-	
 	}
-
-	public function deleteMaestroController(){
-
-		if(isset($_GET["id"])){
-
-			$datosController = $_GET["id"];
-			
-			$respuesta = Datos::deleteMaestroModel($datosController, "maestros");
-
-			if($respuesta == "success"){
-
-				header("location:index.php?action=maestros");
-			
-			}
-
+#---------------------------------------------------------------------------------------------------------
+	#funcion que cuenta el numero total para el dashboard
+	public function contarController($num){
+		#se selecciona que tabla buscara
+		switch ($num) {
+			case 1:
+				$tabla="productos";
+				break;
+			case 2:
+				$tabla="categorias";
+				break;
+			case 3:
+				$tabla="usuarios";
+				break;
+			case 4:
+				$tabla="historial";
+				break;
+			case 5:
+				$tabla="tiendas";
+				break;
 		}
+		$respuesta = Datos::tablaModel($tabla);
+		#teniendo los resultados si hay escribira el numero total
 
+		echo count($respuesta);#trae las filas y las convierte a numero
 	}
+#---------------------------------------------------------------------------------------------------------
+	#muestra los datos de todos los usuarios
+	public function vistaTiendasController(){
+		#se envia la tabla en la cual buscara 
+		$respuesta = Datos::tablaModel("tiendas");
+		#si hay respuesta se imprimiran en la tabla
+		if($respuesta){
+			foreach ($respuesta as $row => $item) {
+				echo '
+				<tr>
+					<td>'.$item["nombre_tienda"].'</td>
+					<td>'.$item["telefono_tienda"].'</td>
+					<td>'.$item["direccion_tienda"].'</td>
+					<td  style="text-align: center;"><a href="index.php?action=entrar_tienda&id='.$item["id_tienda"].'" class="btn btn-success"><i class="fa fa-eye"></i> Entrar</a></td>
+					<td  style="text-align: center;"><a href="index.php?action=pause_tienda&id='.$item["id_tienda"].'" class="btn btn-warning"><i class="fa fa-pause"></i> Deshabilitar</a></td>
+					<td  style="text-align: center;"><a href="index.php?action=edit_tienda&id='.$item["id_tienda"].'" class="btn btn-primary"><i class="fa fa-edit"></i> Editar</a></td>
+					<td  style="text-align: center;"><a href="index.php?action=delete_tienda&idBorrar='.$item["id_tienda"].'" class="btn btn-danger"><i class="fa fa-times"></i> Eliminar</a></td>
 
-	public function vistaAlumnosController(){
-
-		$respuesta = Datos::vistaAlumnosModel("alumno");
-
-		foreach($respuesta as $row => $item){
-		echo'<tr>
-				<td>'.$item["mat"].'</td>
-				<td>'.$item["alu"].'</td>
-				<td>'.$item["carr"].'</td>
-				<td>'.$item["mae"].'</td>
-				<td><a href="index.php?action=edit_alumno&id='.$item["mat"].'"><button class="button" >Modificar</button></a></td>
-				<td><a href="index.php?action=delete_alumno&id='.$item["mat"].'"><button class="button" >Eliminar</button></a></td>
-			</tr>';
-
-		}
-
-	}
-
-	public function tutoresController(){
-
-		$respuesta = Datos::selectTutoresModel("maestros");
-
-		foreach($respuesta as $row => $item){
-
-		echo '<option value='.$item["id_maestro"].'>'.$item["name"].'</option>';
-
-		}
-
-	}
-
-	public function agregarAlumnoController(){
-		if(isset($_POST["agregar"])){
-				$datosController = array( "matricula"=>$_POST["matricula"],
-										  "carrera"=>$_POST["carrera"],
-										  "nombre"=>$_POST["nombre"],
-										  "tutor"=>$_POST["tutor"]);
-
-			
-			$respuesta = Datos::agregarAlumnoModel($datosController, "alumno");
-
-			if($respuesta == "success"){
-
-				header("location:index.php?action=alumnos");
-
-				}else{
-
-				header("location:index.php?action=fallo");
-			}
-
-		}
-
-	}
-
-	public function editAlumnoController(){
-
-		$carrera_ma = Datos::selectCarrerasModel("carreras");
-
-		$tutoresS = Datos::selectTutoresModel("maestros");
-
-		$datosController = $_GET["id"];
-
-		$respuesta = Datos::editAlumnoModel($datosController, "alumno");
-
-		echo'
-		<form class="form-horizontal" role="form">
-		<div class="form-group">
-		<label class="col-md-2 control-label">Matricula</label>
-		<div class="col-md-10">
-		<input type="text" class="form-control" name="matricula" value="'.$respuesta["matt"].'">
-		</div>
-
-		<div class="form-group">
-		<label class="col-md-2 control-label">Nombre</label>
-		<div class="col-md-10">
-		<input type="text" class="form-control" name="nombre" value="'.$respuesta["alum"].'">
-		</div>
-		</div>
-		
-		<div class="form-group">
-		<label class="col-md-2 control-label">Carrera</label>
-		<div class="col-md-10">
-		<select name="carrera">';
-		foreach($carrera_ma as $row => $item){
-
-			if ($item["id_carrera"] == $respuesta["id_carrera"]) {
-				echo '<option value='.$item["id_carrera"].' selected>'.$item["nombre"].'</option>';
-			}else{
-				echo '<option value='.$item["id_carrera"].'>'.$item["nombre"].'</option>';
+				</tr>';
 			}
 		}
-		echo'</select>
-		</div>
-		</div>
-		<div class="form-group">
-		<label class="col-md-2 control-label">Tutor</label>
-		<div class="col-md-10">
-		<select name="tutor">';
-		foreach($tutoresS as $row => $item){
-
-			if ($item["id_maestro"] == $respuesta["id_maestro"]) {
-				echo '<option value='.$item["id_maestro"].' selected>'.$item["name"].'</option>';
-			}else{
-				echo '<option value='.$item["id_maestro"].'>'.$item["name"].'</option>';
-			}
-		}
-		echo'</select>
-		</div>
-		</div>
-		<div class="form-group">
-		<div class="col-md-10">
-		<button class="btn btn-lg btn-primary btn-block" value="Actualizar" name="Actualizar" type="submit">Actualizar</button>
-		</div>
-		</div>
-		</form>
-		</div>';
-	}
-
-	public function updateAlumnoController(){
-
-
-		if(isset($_POST["Actualizar"])){
-
-			$datosController = array( "matricula"=>$_POST["matricula"],
-							          "id_carrera"=>$_POST["carrera"],
-							      	  "nombre"=>$_POST["nombre"],
-							      	  "tutor"=>$_POST["tutor"]);
-
-			
-			$respuesta = Datos::updateAlumnoModel($datosController, "alumno");
-
-			if($respuesta == "success"){
-
-				header("location:index.php?action=alumnos");
-
-			}else{
-
-				echo "error";
-
-			}
-
-		}
-	
-	}
-
-	public function deleteAlumnoController(){
-
-		if(isset($_GET["id"])){
-
-			$datosController = $_GET["id"];
-			
-			$respuesta = Datos::deleteAlumnoModel($datosController, "alumno");
-
-			if($respuesta == "success"){
-
-				header("location:index.php?action=alumnos");
-			
-			}
-
-		}
-
-	}
-
-	public function vistaCarrerasController(){
-
-		$respuesta = Datos::vistaCarrerasModel("carreras");
-
-		foreach($respuesta as $row => $item){
-		echo'<tr>
-				<td>'.$item["id_carrera"].'</td>
-				<td>'.$item["nombre"].'</td>
-				<td><a href="index.php?action=edit_carrera&id='.$item["id_carrera"].'"><button class="button" >Modificar</button></a></td>
-				<td><a href="index.php?action=delete_carrera&id='.$item["id_carrera"].'"><button class="button" >Eliminar</button></a></td>
-			</tr>';
-
-		}
-
-	}
-
-	public function agregarCarreraController(){
-		if(isset($_POST["agregar"])){
-				$datosController = array( "nombre"=>$_POST["nombre"]);
-
-			
-			$respuesta = Datos::agregarCarreraModel($datosController, "carreras");
-
-			if($respuesta == "success"){
-
-				header("location:index.php?action=carreras");
-
-				}else{
-
-				header("location:index.php?action=fallo");
-			}
-
-		}
-
-	}
-
-	public function editCarrerasController(){
-
-		$datosController = $_GET["id"];
-
-		$respuesta = Datos::editCarrerasModel($datosController, "carreras");
-
-		echo'
-		<form class="form-horizontal" role="form">
-		<div class="form-group">
-		<label class="col-md-2 control-label">ID</label>
-		<div class="col-md-10">
-		<input type="text" class="form-control" name="id_carrera" value="'.$respuesta["id_carrera"].'">
-		</div>
-
-		<div class="form-group">
-		<label class="col-md-2 control-label">Nombre</label>
-		<div class="col-md-10">
-		<input type="text" class="form-control" name="nombre" value="'.$respuesta["nombre"].'">
-		</div>
-
-		
-		<div class="form-group">
-		<div class="col-md-10">
-		<button class="btn btn-lg btn-primary btn-block" value="Actualizar" name="Actualizar" type="submit">Agregar</button>
-		</div>
-		</div>
-		</form>
-		</div>';
-	}
-
-	public function deleteCarrerasController(){
-
-		if(isset($_GET["id"])){
-
-			$datosController = $_GET["id"];
-			
-			$respuesta = Datos::deleteCarrerasModel($datosController, "carreras");
-
-			if($respuesta == "success"){
-
-				header("location:index.php?action=carreras");
-			
-			}
-
-		}
-
 	}
 
 
 
-*/
 }
 
 ?>
