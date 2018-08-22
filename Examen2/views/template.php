@@ -41,9 +41,11 @@
               if($_GET["action"]=="pagos" || $_GET["action"]=="alumnas"){
                   include("modules/menu.php");
               }else{
-                if($_GET["action"]!="login" && $_GET["action"]!="fallo"){
-                  #include("modules/navegacion2.php");
+                /*
+                if(){
+                
                 }
+                */
               }
         }else{
           include("modules/menu.php");
